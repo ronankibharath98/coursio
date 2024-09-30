@@ -1,4 +1,4 @@
-import { User } from '../models/user.model.js';
+import { Admin } from '../models/admin.model.js';
 import { generateRefreshToken, generateAccessToken } from '../utils/userToken.js'
 import bcrypt from 'bcryptjs'
 
@@ -12,8 +12,10 @@ export const signup = async (req, res) => {
                 success: false
             })
         }
+
         email = email.toLowerCase();
-        const existingEmail = await User.findOne({ email })
+
+        const existingEmail = await Admin.findOne({ email })
 
         if (existingEmail) {
             return res.status(400).json({
@@ -23,19 +25,19 @@ export const signup = async (req, res) => {
         }
 
         const hashPassword = await bcrypt.hash(password, 12);
-        const user = {
+        const admin = {
             firstName: firstName,
             lastName: lastName,
             email: email,
             password: hashPassword
         }
 
-        await User.create(user);
+        await Admin.create(admin);
 
         return res.status(201).json({
-            message: "User signedup successfully",
+            message: "Admin signedup successfully, You can login now",
             success: true,
-            user: {
+            admin: {
                 firstName,
                 lastName,
                 email
@@ -44,59 +46,66 @@ export const signup = async (req, res) => {
     } catch (err) {
         console.log("Error in signup controller", err)
         return res.status(500).json({
-            message: "Server Error in singup",
+            message: "Server Error in Admin singup",
             success: false
         })
     }
 }
 
 export const singin = async (req, res) => {
-    let { email, password } = req.body;
+    try {
+        let { email, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({
-            message: "All fields required",
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "All fields required",
+                success: false
+            })
+        }
+
+        email = email.toLowerCase();
+
+        const admin = await Admin.findOne({ email });
+
+        if (!admin) {
+            return res.status(400).json({
+                message: "User registered with the email not found",
+                success: false
+            })
+        }
+
+        const isPasswordMatch = await bcrypt.compare(password, admin.password);
+
+        if (!isPasswordMatch) {
+            return res.status(400).json({
+                message: "Wrong Password",
+                success: false
+            })
+        }
+
+        const accessToken = generateAccessToken(admin);
+        const refreshToken = generateRefreshToken(admin);
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, {
+                maxAge: 15 * 60 * 1000,
+                httpOnly: true,
+                // secure: true
+            })
+            .cookie("refreshToken", refreshToken, {
+                maxAge: 24 * 60 * 60 * 1000,
+                httpOnly: true
+            })
+            .json({
+                message: "Admin Signed in successfully",
+                success: true
+            })
+    } catch (error) {
+        return res.status(500).json({
+            message: "Server Error in Admin Signin",
             success: false
         })
     }
-
-    email = email.toLowerCase();
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-        return res.status(400).json({
-            message: "User registered with the email not found",
-            success: false
-        })
-    }
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-        return res.status(400).json({
-            message: "Wrong Password",
-            success: false
-        })
-    }
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    return res.status(200)
-        .cookie("accessToken", accessToken, {
-            maxAge: 15 * 60 * 1000,
-            httpOnly: true,
-            // secure: true
-        })
-        .cookie("refreshToken", refreshToken, {
-            maxAge: 24 * 60 * 60 * 1000,
-            httpOnly: true
-        })
-        .json({
-            message: "Signed in successfully",
-            success: true
-        })
 }
 
 export const signout = async (req, res) => {
@@ -112,7 +121,7 @@ export const signout = async (req, res) => {
     } catch (err) {
         console.log(err);
         return res.status(500).json({
-            message: "Server error in singout function",
+            message: "Server error in Amdin signout",
             success: false
         })
     }

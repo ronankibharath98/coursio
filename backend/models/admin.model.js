@@ -6,7 +6,7 @@ const adminSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    last_name: {
+    lastName: {
         type: String,
         required: true,
         trim: true
