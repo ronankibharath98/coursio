@@ -18,7 +18,7 @@ const courseSchema = new mongoose.Schema({
         trim: true
     },
     imageUrl: {
-
+        // need to add image upload functionality
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

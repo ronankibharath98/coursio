@@ -33,7 +33,7 @@ export const signup = async (req, res) => {
         await User.create(user);
 
         return res.status(201).json({
-            message: "User signedup successfully",
+            message: `Welcome ${user.firstName}, You can signin now`,
             success: true,
             user: {
                 firstName,
@@ -80,8 +80,8 @@ export const singin = async (req, res) => {
         })
     }
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const accessToken = await generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user);
 
     return res.status(200)
         .cookie("accessToken", accessToken, {
@@ -94,13 +94,21 @@ export const singin = async (req, res) => {
             httpOnly: true
         })
         .json({
-            message: "Signed in successfully",
+            message: `Hey ${user.firstName}, You are signed in now`,
             success: true
         })
 }
 
 export const signout = async (req, res) => {
     try {
+        const token = req.cookies.refreshToken;
+
+        const user = await User.findOneAndUpdate(
+            { refreshToken: token },
+            { $set: {refreshToken: ""}},
+            { new: true }
+        )
+
         return res
             .status(200)
             .clearCookie("accessToken", { httpOnly: true })

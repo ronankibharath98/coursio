@@ -9,8 +9,7 @@ export const isAuthenticated = async (req, res, next) => {
 
     try {
         const accessToken = req.cookies.accessToken;
-        console.log(accessToken)
-
+        
         if (accessToken) {
             jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
                 if (error) {

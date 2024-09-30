@@ -1,6 +1,9 @@
+import { generateRefreshToken, generateAccessToken } from '../utils/adminToken.js'
 import { Admin } from '../models/admin.model.js';
-import { generateRefreshToken, generateAccessToken } from '../utils/userToken.js'
-import bcrypt from 'bcryptjs'
+import { Courses } from '../models/course.model.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 
 export const signup = async (req, res) => {
     try {
@@ -35,7 +38,7 @@ export const signup = async (req, res) => {
         await Admin.create(admin);
 
         return res.status(201).json({
-            message: "Admin signedup successfully, You can login now",
+            message: `Hey ${admin.firstName}, your profile is created. You can login now`,
             success: true,
             admin: {
                 firstName,
@@ -43,8 +46,8 @@ export const signup = async (req, res) => {
                 email
             }
         })
-    } catch (err) {
-        console.log("Error in signup controller", err)
+    } catch (error) {
+        console.log("Error in signup controller", error)
         return res.status(500).json({
             message: "Server Error in Admin singup",
             success: false
@@ -69,7 +72,7 @@ export const singin = async (req, res) => {
 
         if (!admin) {
             return res.status(400).json({
-                message: "User registered with the email not found",
+                message: "Admin registered with the email not found",
                 success: false
             })
         }
@@ -83,9 +86,9 @@ export const singin = async (req, res) => {
             })
         }
 
-        const accessToken = generateAccessToken(admin);
-        const refreshToken = generateRefreshToken(admin);
-
+        const accessToken = await generateAccessToken(admin);
+        const refreshToken = await generateRefreshToken(admin);
+        // console.log(accessToken, refreshToken)
         return res.status(200)
             .cookie("accessToken", accessToken, {
                 maxAge: 15 * 60 * 1000,
@@ -97,7 +100,7 @@ export const singin = async (req, res) => {
                 httpOnly: true
             })
             .json({
-                message: "Admin Signed in successfully",
+                message: `Welcome ${admin.firstName}`,
                 success: true
             })
     } catch (error) {
@@ -110,12 +113,26 @@ export const singin = async (req, res) => {
 
 export const signout = async (req, res) => {
     try {
+        const token = req.cookies.refreshToken;
+        // console.log(token)
+        const admin = await Admin.findOneAndUpdate(
+            {refreshToken: token},
+            { $set: {refreshToken: ""}},
+            { new: true}
+        );
+
+        if(!admin){
+            return res.status(401).json({
+                message: "Admin not found",
+                success: false
+            })
+        }
         return res
             .status(200)
             .clearCookie("accessToken", { httpOnly: true })
             .clearCookie("refreshToken", { httpOnly: true })
             .json({
-                message: "User signed out successfully",
+                message: "Admin signed out successfully",
                 success: true
             })
     } catch (err) {
@@ -127,6 +144,82 @@ export const signout = async (req, res) => {
     }
 }
 
-// export const refreshToken = async(req, res) => {
-//     const token = req.cookies.accessToken
-// }
+export const refreshAccessToken = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        return res.status(401).json({
+            message: "Invalid refresh token. Login again",
+            success: false
+        })
+    }
+    try {
+        const admin = await Admin.findOne({ refreshToken });
+
+        const newAccessToken = generateAccessToken(admin);
+
+        return res.cookie("accessToken", newAccessToken, {
+            maxAge: 15 * 60 * 1000,
+            httpOnly: true
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "Server error in refreshAccessToken",
+            success: false
+        })
+    }
+
+}
+
+export const addCourse = async (req, res) => {
+    try {
+        const {title, description, price} = req.body;
+
+        if (!title || !description || !price) {
+            return res.stauts(400).json({
+                message: "All fields required",
+                success: false
+            })
+        }
+        
+        const token = req.cookies.accessToken;
+        if(!token){
+            return res.status(401).json({
+                message: "No access token provided",
+                success: false
+            });
+        }
+
+        // Verify access token
+        let adminId;
+        try {
+            const decoded = jwt.verify(token, process.env.ADMIN_ACCESS_TOKEN_SECRET);
+            adminId = decoded.adminId; 
+        } catch (error) {
+            return res.status(403).json({
+                message: "Invalid or expired access token",
+                success: false
+            });
+        }
+        const newCourse = new Courses({
+            title,
+            description,
+            price,
+            createdBy: adminId
+        })
+
+        await newCourse.save();
+
+        return res.status(200).json({
+            message: `Course ${title} created Successfully`,
+            success: true,
+            course: newCourse
+            
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "Server error in adding course",
+            success: false
+        })
+    }
+}
