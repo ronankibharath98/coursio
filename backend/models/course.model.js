@@ -17,14 +17,23 @@ const courseSchema = new mongoose.Schema({
         require: true,
         trim: true
     },
+    favourite:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
+    }],
+    applicants: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
+    }],
     imageUrl: {
         // need to add image upload functionality
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Admin',
-        require: true,
-
+        require: true
     }
 }, {timestamps: true});
 

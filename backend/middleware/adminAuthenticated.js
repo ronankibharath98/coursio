@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user.model.js';
 import { generateAccessToken } from '../utils/adminToken.js';
+import { Admin } from '../models/admin.model.js';
 
 export const adminIsAuthenticated = async (req, res, next) => {
     try{
@@ -10,11 +10,11 @@ export const adminIsAuthenticated = async (req, res, next) => {
             jwt.verify(accessToken, process.env.ADMIN_ACCESS_TOKEN_SECRET, (error, decoded) =>{
                 if(error){
                     return res.status(401).json({
-                        message: "Access token not found",
+                        message: "Access token not found. Login again",
                         success: false
                     })
                 }
-                req.user = decoded
+                req.admin = decoded
                 return next();
             })    
         }else {
@@ -25,7 +25,9 @@ export const adminIsAuthenticated = async (req, res, next) => {
                     success: false
                 })
             }
-            const admin = await User.findOne({refreshToken})
+
+            const admin = await Admin.findOne({refreshToken})
+            
             if(!admin){
                 return res.status(401).json({
                     message: "Admin matching refresh token not found. Login again",

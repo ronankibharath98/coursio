@@ -4,7 +4,6 @@ import { Courses } from '../models/course.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-
 export const signup = async (req, res) => {
     try {
         let { firstName, lastName, email, password } = req.body;
@@ -116,12 +115,12 @@ export const signout = async (req, res) => {
         const token = req.cookies.refreshToken;
         // console.log(token)
         const admin = await Admin.findOneAndUpdate(
-            {refreshToken: token},
-            { $set: {refreshToken: ""}},
-            { new: true}
+            { refreshToken: token },
+            { $set: { refreshToken: "" } },
+            { new: true }
         );
 
-        if(!admin){
+        if (!admin) {
             return res.status(401).json({
                 message: "Admin not found",
                 success: false
@@ -171,54 +170,31 @@ export const refreshAccessToken = async (req, res) => {
 
 }
 
-export const addCourse = async (req, res) => {
-    try {
-        const {title, description, price} = req.body;
+export const getAdminCourses = async (req, res) => {
+    try{
+        const token = req.cookies.accessToken
 
-        if (!title || !description || !price) {
-            return res.stauts(400).json({
-                message: "All fields required",
-                success: false
-            })
-        }
-        
-        const token = req.cookies.accessToken;
-        if(!token){
+        if (!token) {
             return res.status(401).json({
-                message: "No access token provided",
+                message: "No access token provided. Unauthorized",
                 success: false
             });
         }
 
-        // Verify access token
-        let adminId;
-        try {
-            const decoded = jwt.verify(token, process.env.ADMIN_ACCESS_TOKEN_SECRET);
-            adminId = decoded.adminId; 
-        } catch (error) {
-            return res.status(403).json({
-                message: "Invalid or expired access token",
-                success: false
-            });
-        }
-        const newCourse = new Courses({
-            title,
-            description,
-            price,
-            createdBy: adminId
-        })
-
-        await newCourse.save();
+        const decoded = jwt.verify(token, process.env.ADMIN_ACCESS_TOKEN_SECRET)
+        const adminId = decoded.adminId
+        
+        const adminCourses = await Courses.find({createdBy: adminId});
 
         return res.status(200).json({
-            message: `Course ${title} created Successfully`,
+            message: "All courses fetched successfully",
             success: true,
-            course: newCourse
-            
+            adminCourses
         })
-    } catch (error) {
+    }catch(error){
+        console.error("Error fetching admin courses:", error);
         return res.status(500).json({
-            message: "Server error in adding course",
+            message: "Server error while fetching all admin posted courses",
             success: false
         })
     }

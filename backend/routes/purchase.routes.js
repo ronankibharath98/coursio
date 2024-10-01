@@ -3,7 +3,7 @@ import express from 'express'
 const purchaseRouter = express.Router();
 
 
-purchaseRouter.route('/purchase-catelouge').get();
+purchaseRouter.route('/purchaseCatelouge').get();
 
 
 

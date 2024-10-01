@@ -4,9 +4,11 @@ import { isAuthenticated } from "../middleware/isAuthenticated.js";
 
 const userRouter = express.Router();
 
-userRouter.route('/signup').post( signup )
-userRouter.route('/signin').post( singin )
-userRouter.route('/signout').post( isAuthenticated, signout)
+userRouter.route('/signup').post(signup)
+userRouter.route('/signin').post(singin)
+userRouter.route('/signout').post(isAuthenticated, signout)
+userRouter.route('/updateProfile').post()
+
 
 
 export default userRouter;

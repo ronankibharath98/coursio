@@ -126,6 +126,3 @@ export const signout = async (req, res) => {
     }
 }
 
-// export const refreshToken = async(req, res) => {
-//     const token = req.cookies.accessToken
-// }
