@@ -1,6 +1,11 @@
 import mongoose, { model, mongo } from "mongoose";
 
 const purchaseSchema = new mongoose.Schema({
+    transactionId: {
+        type: String,
+        default: "ACRAF23DB3C4",
+        required: true
+    },
     courseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
