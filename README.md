@@ -1,36 +1,49 @@
-# Coursio - Course Selling App Backend
+# Coursio - Course Selling App
 
 Coursio is the backend for a course-selling application, providing the APIs and data management needed for users to buy and sell courses.
 
-Features
-User Authentication (Signup/Login)
-Course Management (Add, Update, Delete)
-Purchase and Enrollment APIs
-Middleware for Authentication
-Integration with external payment processors
+## Features
+- User authentication and authorization.
+- Add, edit, and delete Courses.
+- Purchase and Enrollment API middlewares.
+- Integration with external payment processor.
 
-Tech Stack
-Node.js
-Express.js
-MongoDB
+## Live Demo
+[View the application here](https://todo-fullstack-jet.vercel.app)
 
-Getting Started
+## Tech Stack
+- **Frontend:** React, tailwindCSS
+- **Backend:** Node.js, Express.js, MongoDB
+- **Deployment:** Not deployed yet
 
-1. Clone the repository: 
-git clone https://github.com/ronankibharath98/coursio.git
-cd coursio
+## Setup Instructions
 
+### Backend
+1. Navigate to the `backend` folder:
+   ```bash
+   cd backend
 2. Install dependencies:
-npm install
+   ```bash
+	npm install
+3. Create a `.env` file in the `backend` directory with the following:
+	```bash
+	MONGO_URI=your_mongo_connection_string
+	PORT=5000
+	JWT_SECRET=your_jwt_secret
+4. Run the server:
+	```bash
+	npm start
 
-3. Set environment variables:
-Create a .env file based on .env.example.
-Add necessary environment variables like database URL, secret keys, etc.
-
-4. Start the server:
-   for dev mode - npm run dev
-     or 
-  npm start
-
-5. The server will run by default at http://localhost:3000.
+### Frontend
+1. Navigate to the `frontend` folder:
+	```bash
+	cd frontend
+2. Install dependencies:
+	```bash
+	npm install
+3. Start the React application:
+	```bash
+	npm run dev
+### License
+This project is licensed under the MIT License.
 
